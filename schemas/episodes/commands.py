@@ -1,3 +1,5 @@
+from sqlalchemy import desc
+
 from database.tables import Episode
 from sqlalchemy.orm import Session
 from .utils import generate_episode_name
@@ -15,6 +17,12 @@ def find_episode_by_name(db: Session, episode_name):
     return db.query(Episode).filter_by(
         episode_name=episode_name
     ).first()
+
+
+def get_episodes_by_site(db: Session, site: str):
+    return db.query(Episode).filter_by(
+        site=site
+    ).order_by(desc('watch_date'), desc('episode_order'))
 
 
 def create_episode(db: Session,

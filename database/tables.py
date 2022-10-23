@@ -12,8 +12,8 @@ class Title(Base):
 
     def to_json(self):
         return {
-            'title_name': self.title_name,
-            'watch_motivation': self.watch_motivation,
+            'titleName': self.title_name,
+            'watchMotivation': self.watch_motivation,
         }
 
 
@@ -31,12 +31,12 @@ class Season(Base):
 
     def to_json(self):
         return {
-            'season_name': self.season_name,
-            'episodes_count': self.episodes_count,
-            'watch_motivation': self.watch_motivation,
+            'seasonName': self.season_name,
+            'episodeCount': self.episodes_count,
+            'watchMotivation': self.watch_motivation,
             'summary': self.summary,
-            'season_order': self.season_order,
-            'title': self.title.watch_motivation,
+            'seasonOrder': self.season_order,
+            'title': self.title.to_json()
         }
 
 
@@ -57,16 +57,16 @@ class Episode(Base):
 
     def to_json(self):
         return {
-            'episode_name': self.episode_name,
-            'season_name': self.season_name,
-            'watch_date': self.watch_date.strftime('%Y-%m-%d'),
-            'episode_order': self.episode_order,
-            'episode_time': self.episode_time,
-            'watched_time': self.watched_time,
-            'translate_type': self.translate_type,
-            'before_watch': self.before_watch,
-            'after_watch': self.after_watch,
-            'site': self.site
+            'episodeName': self.episode_name,
+            'watchDate': self.watch_date.strftime('%Y-%m-%d'),
+            'episodeOrder': self.episode_order,
+            'episodeTime': self.episode_time,
+            'watchedTime': self.watched_time,
+            'translateType': self.translate_type,
+            'beforeWatch': self.before_watch,
+            'afterWatch': self.after_watch,
+            'site': self.site,
+            'season': self.season.to_json()
         }
 
 # Base.metadata.create_all(engine)

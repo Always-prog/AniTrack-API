@@ -2,7 +2,12 @@ from pydantic import BaseModel
 from typing import Union
 
 
-class TitleSearch(BaseModel):
+class Search(BaseModel):
+    search: str
+
+
+class SearchInTitle(BaseModel):
+    title_name: str
     search: str
 
 
@@ -21,7 +26,7 @@ class EpisodeCreate(BaseModel):
     translate_type: str
     before_watch: Union[str, None]
     after_watch: Union[str, None]
-    site: Union[str, None]
+    site: str
 
 
 class SeasonCreate(BaseModel):
