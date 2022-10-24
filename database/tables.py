@@ -21,7 +21,7 @@ class Season(Base):
     __tablename__ = "seasons"
 
     season_name = Column(String(255), primary_key=True)
-    title_name = Column(String(255), ForeignKey('titles.title_name'))
+    title_name = Column(String(255), ForeignKey('titles.title_name'))  # TODO: Cascade
     title = relationship("Title", foreign_keys=[title_name], cascade="all, delete")
     episodes_count = Column(Integer)
     watch_motivation = Column(Text)
@@ -44,7 +44,7 @@ class Episode(Base):
     __tablename__ = "episodes"
 
     episode_name = Column(String(255), primary_key=True, nullable=True)
-    season_name = Column(String(255), ForeignKey('seasons.season_name'))
+    season_name = Column(String(255), ForeignKey('seasons.season_name')) # TODO: Cascade
     season = relationship("Season", foreign_keys=[season_name], cascade="all, delete")
     watch_date = Column(Date)
     episode_order = Column(Integer)
