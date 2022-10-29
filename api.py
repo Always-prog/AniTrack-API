@@ -4,15 +4,15 @@ from sqlalchemy.orm import Session
 
 from database.sessions import get_db
 from requests_types import TitleCreate, EpisodeCreate, SeasonCreate, DeleteEpisode, DeleteSeason, \
-    DeleteTitle
+    DeleteTitle, UpdateSeason, UpdateTitle
 from schemas.episodes.commands import create_episode, get_episodes_by_site, delete_episode, dump_episodes
 from schemas.episodes.exceptions import EpisodeAlreadyExists
 from schemas.seasons.commands import get_seasons, create_season, get_most_like_season, get_season, \
-    get_season_watched_episodes, get_season_by_site, delete_season
+    get_season_watched_episodes, get_season_by_site, delete_season, update_season
 from schemas.seasons.exceptions import SeasonAlreadyExists, SeasonNotFound
 from schemas.titles.commands import get_titles, search_titles, create_title, get_most_like_title, \
-    get_most_like_season_in_title, get_recent_watched_episode, get_title, delete_title
-from schemas.titles.exceptions import TitleAlreadyExists
+    get_most_like_season_in_title, get_recent_watched_episode, get_title, delete_title, update_title
+from schemas.titles.exceptions import TitleAlreadyExists, TitleNotFound
 
 app = FastAPI()
 
@@ -52,6 +52,16 @@ async def most_like_title_endpoint(search: str, db: Session = Depends(get_db)):
 async def search_titles_endpoint(search: str, db: Session = Depends(get_db)):
     titles = search_titles(db, search)
     return [title.title_name for title in titles]
+
+
+@app.put("/title/")
+async def update_title_endpoint(data: UpdateTitle, db: Session = Depends(get_db)):
+    try:
+        title = update_title(db, data.title_name, **data.updated_fields)
+    except TitleNotFound as e:
+        raise HTTPException(status_code=404, detail=e.__str__())
+
+    return title.to_json()
 
 
 @app.delete("/title/")
@@ -117,6 +127,16 @@ async def get_season_watched_episodes_endpoint(seasonName: str, db: Session = De
     except SeasonNotFound as e:
         raise HTTPException(status_code=404, detail=e.__str__())
     return [episode.to_json() for episode in episodes]
+
+
+@app.put("/season/")
+async def update_season_endpoint(data: UpdateSeason, db: Session = Depends(get_db)):
+    try:
+        season = update_season(db, data.season_name, **data.updated_fields)
+    except SeasonNotFound as e:
+        raise HTTPException(status_code=404, detail=e.__str__())
+
+    return season.to_json()
 
 
 @app.delete("/season/")

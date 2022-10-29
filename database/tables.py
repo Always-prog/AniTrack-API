@@ -16,6 +16,7 @@ class Title(Base):
         return {
             'titleName': self.title_name,
             'watchMotivation': self.watch_motivation,
+            'summary': self.summary,
             'seasons': [season.to_json(include_title=False) for season in self.seasons]
         }
 

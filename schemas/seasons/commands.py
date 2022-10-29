@@ -21,6 +21,14 @@ def get_season(db: Session, season_name: str):
     return season
 
 
+def update_season(db: Session, season_name: str, **kwargs):
+    season = get_season(db, season_name)
+    for column, value in kwargs.items():
+        setattr(season, column, value)
+    db.commit()
+    return season
+
+
 def get_season_watched_episodes(db: Session, season_name: str):
     if not find_season_by_name(db, season_name):
         raise SeasonNotFound(f'Season {season_name} don\'t exists!')

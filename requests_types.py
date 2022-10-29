@@ -48,3 +48,14 @@ class DeleteSeason(BaseModel):
 
 class DeleteTitle(BaseModel):
     title_name: str
+
+
+class UpdateSeason(BaseModel):
+    season_name: str
+    updated_fields: dict
+
+
+class UpdateTitle(BaseModel):
+    title_name: str
+    updated_fields: dict
+

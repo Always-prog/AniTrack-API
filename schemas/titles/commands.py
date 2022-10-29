@@ -11,6 +11,14 @@ from ..seasons.commands import get_season
 from fuzzywuzzy import process
 
 
+def update_title(db: Session, title_name: str, **kwargs):
+    title = get_title(db, title_name)
+    for column, value in kwargs.items():
+        setattr(title, column, value)
+    db.commit()
+    return title
+
+
 def get_title(db: Session, title_name: str):
     title = db.query(Title).filter_by(title_name=title_name).first()
     if title is None:
