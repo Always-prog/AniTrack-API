@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from database.sessions import get_db
 from requests_types import TitleCreate, EpisodeCreate, SeasonCreate, DeleteEpisode, DeleteSeason, \
     DeleteTitle
-from schemas.episodes.commands import create_episode, get_episodes_by_site, delete_episode
+from schemas.episodes.commands import create_episode, get_episodes_by_site, delete_episode, dump_episodes
 from schemas.episodes.exceptions import EpisodeAlreadyExists
 from schemas.seasons.commands import get_seasons, create_season, get_most_like_season, get_season, \
     get_season_watched_episodes, get_season_by_site, delete_season
@@ -179,4 +179,6 @@ async def create_episode_endpoint(data: EpisodeCreate, db: Session = Depends(get
             db=db)
     except EpisodeAlreadyExists as e:
         raise HTTPException(status_code=409, detail=e.__str__())
+    dump_episodes(db)
+
     return episode.to_json()

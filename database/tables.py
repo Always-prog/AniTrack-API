@@ -7,8 +7,9 @@ class Title(Base):
     __tablename__ = "titles"
 
     title_name = Column(String(255), primary_key=True, index=True)
-    # title_type = Column(String(255))
-    watch_motivation = Column(Text)
+    title_type = Column(String(255), nullable=True)
+    watch_motivation = Column(Text, nullable=True)
+    summary = Column(Text, nullable=True)
     seasons = relationship("Season", cascade="all, delete-orphan")
 
     def to_json(self):

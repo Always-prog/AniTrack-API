@@ -2,8 +2,11 @@ from sqlalchemy import desc
 
 from database.tables import Episode
 from sqlalchemy.orm import Session
+
+from settings import EPISODES_TXT_FILE_PATH, DUMP_SCRIPT_PATH
 from .utils import generate_episode_name
 from .exceptions import EpisodeAlreadyExists, EpisodeNotFound
+from schemas.episodes.dumps import dump_database, write_episodes_to_txt
 
 
 def find_season_episode_by_order(db: Session, season_name, episode_order):
@@ -32,6 +35,11 @@ def delete_episode(db: Session, episode_name: str):
 
     db.delete(episode)
     db.commit()
+
+
+def dump_episodes(db: Session):
+    write_episodes_to_txt(db, EPISODES_TXT_FILE_PATH)
+    dump_database(DUMP_SCRIPT_PATH)
 
 
 def create_episode(db: Session,
