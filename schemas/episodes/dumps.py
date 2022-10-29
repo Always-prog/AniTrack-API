@@ -1,9 +1,25 @@
-from sqlalchemy import asc, func
+import subprocess
+
+from sqlalchemy import func
 from sqlalchemy.orm import Session
-from database.tables import Title, Season, Episode
+from database.tables import Season, Episode
+from threading import Thread
+from os import system
 
 
-def to_file(db: Session, filepath: str):
+def dump_all(db: Session, script: str, filepath: str):
+    def execute(db: Session, script: str, filepath: str):
+        write_episodes_to_txt(db, filepath)
+        dump_database(script)
+    thread = Thread(target=execute, args=(db, script, filepath,))
+    thread.start()
+
+
+def dump_database(script: str):
+    subprocess.Popen(script, shell=True)
+
+
+def write_episodes_to_txt(db: Session, filepath: str):
     file_content = []
     space = '   '
 
