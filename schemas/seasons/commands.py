@@ -5,18 +5,7 @@ from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from database.tables import Season, Title, Episode
-from schemas.seasons.exceptions import SeasonAlreadyExists, SeasonDontExists
-
-
-def generate_season_name(title_name, season_order):
-    return f'{title_name} season {season_order}'
-
-
-def find_season_by_order(db: Session, title_name, season_order):
-    return db.query(Season).filter_by(
-        title_name=title_name,
-        season_order=season_order
-    ).first()
+from schemas.seasons.exceptions import SeasonAlreadyExists, SeasonNotFound
 
 
 def find_season_by_name(db: Session, season_name):
@@ -26,12 +15,15 @@ def find_season_by_name(db: Session, season_name):
 
 
 def get_season(db: Session, season_name: str):
-    return db.query(Season).filter_by(season_name=season_name).first()
+    season = db.query(Season).filter_by(season_name=season_name).first()
+    if season is None:
+        raise SeasonNotFound(f'Season with name {season_name} don\'t exists')
+    return season
 
 
 def get_season_watched_episodes(db: Session, season_name: str):
     if not find_season_by_name(db, season_name):
-        raise SeasonDontExists(f'Season {season_name} don\'t exists!')
+        raise SeasonNotFound(f'Season {season_name} don\'t exists!')
     return db.query(Episode).filter_by(season_name=season_name).order_by(desc('watch_date'), desc('episode_order'))
 
 
@@ -44,30 +36,43 @@ def get_seasons(db: Session) -> List[Season]:
     return db.query(Season).all()
 
 
+def get_season_by_site(db: Session, site: str):
+    primary = db.query(Season).filter_by(primary_site=site).first()
+    if primary is not None:
+        return primary
+    secondary = db.query(Episode).filter_by(site=site).first()
+    if secondary is not None:
+        return secondary.season
+
+    raise SeasonNotFound(f'Season by site "{site}" don\'t exists')
+
+
+def delete_season(db: Session, season_name: str):
+    season = db.query(Season).filter_by(season_name=season_name).first()
+    if season is None:
+        raise SeasonNotFound(f'Season with name "{season_name}" don\'t exists!')
+    db.delete(season)
+    db.commit()
+
+
 def create_season(db: Session,
+                  season_name,
                   title_name,
                   episodes_count,
                   watch_motivation,
-                  season_order,
+                  primary_site,
                   summary=None,
-                  season_name=None
                   ):
-    if season_name is None:
-        season_name = generate_season_name(title_name, season_order)
-
     if find_season_by_name(db, season_name):
         raise SeasonAlreadyExists(f'Season with name {season_name} already exists')
-
-    if find_season_by_order(db, title_name, season_order):
-        raise SeasonAlreadyExists(f'Season with order {season_order} in {title_name} already exists')
 
     season = Season(
         season_name=season_name,
         title_name=title_name,
         episodes_count=episodes_count,
         watch_motivation=watch_motivation,
-        summary=summary,
-        season_order=season_order
+        primary_site=primary_site,
+        summary=summary
     )
     db.add(season)
     db.commit()

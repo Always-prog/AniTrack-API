@@ -4,11 +4,30 @@ from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from database.tables import Title, Episode
-from .exceptions import TitleAlreadyExists
+from .exceptions import TitleAlreadyExists, TitleNotFound
 
 from ..seasons.commands import get_season
 
 from fuzzywuzzy import process
+
+
+def get_title(db: Session, title_name: str):
+    title = db.query(Title).filter_by(title_name=title_name).first()
+    if title is None:
+        raise TitleNotFound(f'Title with name "{title_name}" not found!')
+    return title
+
+
+def find_title_by_name(db: Session, title_name: str):
+    return db.query(Title).filter_by(title_name=title_name).first()
+
+
+def delete_title(db: Session, title_name: str):
+    title = db.query(Title).filter_by(title_name=title_name).first()
+    if title is None:
+        raise TitleNotFound(f'Title with name "{title_name}" not found!')
+    db.delete(title)
+    db.commit()
 
 
 def get_titles(db: Session) -> List[Title]:
@@ -35,12 +54,8 @@ def get_most_like_season_in_title(db: Session, title_name: str, search: str):
     return get_season(db, season_name)
 
 
-def get_title(db: Session, title_name: str):
-    return db.query(Title).filter_by(title_name=title_name).first()
-
-
 def create_title(db: Session, title_name: str, watch_motivation: str):
-    if get_title(db, title_name):
+    if find_title_by_name(db, title_name):
         raise TitleAlreadyExists(title_name)
 
     title = Title(

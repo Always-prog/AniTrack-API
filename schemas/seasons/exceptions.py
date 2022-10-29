@@ -10,6 +10,6 @@ class SeasonNoOneWatchedEpisode(Exception):
         super().__init__(message)
 
 
-class SeasonDontExists(Exception):
+class SeasonNotFound(Exception):
     def __init__(self, message):
         super().__init__(message)

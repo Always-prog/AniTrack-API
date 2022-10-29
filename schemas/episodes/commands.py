@@ -3,7 +3,7 @@ from sqlalchemy import desc
 from database.tables import Episode
 from sqlalchemy.orm import Session
 from .utils import generate_episode_name
-from .exceptions import EpisodeAlreadyExists
+from .exceptions import EpisodeAlreadyExists, EpisodeNotFound
 
 
 def find_season_episode_by_order(db: Session, season_name, episode_order):
@@ -25,6 +25,15 @@ def get_episodes_by_site(db: Session, site: str):
     ).order_by(desc('watch_date'), desc('episode_order'))
 
 
+def delete_episode(db: Session, episode_name: str):
+    episode = db.query(Episode).filter_by(episode_name=episode_name).first()
+    if episode is None:
+        raise EpisodeNotFound(f'Episode "{episode_name}" not found!')
+
+    db.delete(episode)
+    db.commit()
+
+
 def create_episode(db: Session,
                    season_name,
                    watch_date,
@@ -44,7 +53,7 @@ def create_episode(db: Session,
         raise EpisodeAlreadyExists(f'Episode in {season_name} with order {episode_order} already exists.')
 
     if find_episode_by_name(db, episode_name):
-        raise EpisodeAlreadyExists(f'Episode with name {episode_order} already exists.')
+        raise EpisodeAlreadyExists(f'Episode in {season_name} with name {episode_name} already exists.')
 
     episode = Episode(
         episode_name=episode_name,

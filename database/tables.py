@@ -7,13 +7,15 @@ class Title(Base):
     __tablename__ = "titles"
 
     title_name = Column(String(255), primary_key=True, index=True)
+    # title_type = Column(String(255))
     watch_motivation = Column(Text)
-    seasons = relationship("Season")
+    seasons = relationship("Season", cascade="all, delete-orphan")
 
     def to_json(self):
         return {
             'titleName': self.title_name,
             'watchMotivation': self.watch_motivation,
+            'seasons': [season.to_json(include_title=False) for season in self.seasons]
         }
 
 
@@ -22,21 +24,21 @@ class Season(Base):
 
     season_name = Column(String(255), primary_key=True)
     title_name = Column(String(255), ForeignKey('titles.title_name'))  # TODO: Cascade
-    title = relationship("Title", foreign_keys=[title_name], cascade="all, delete")
+    title = relationship("Title", foreign_keys=[title_name])
     episodes_count = Column(Integer)
-    watch_motivation = Column(Text)
+    watch_motivation = Column(Text, nullable=True)
+    primary_site = Column(String(255))
     summary = Column(Text)
-    season_order = Column(Integer)
-    episodes = relationship("Episode")
+    episodes = relationship("Episode", cascade="all, delete-orphan")
 
-    def to_json(self):
+    def to_json(self, include_title=True):
         return {
             'seasonName': self.season_name,
             'episodeCount': self.episodes_count,
             'watchMotivation': self.watch_motivation,
             'summary': self.summary,
-            'seasonOrder': self.season_order,
-            'title': self.title.to_json()
+            'title': self.title.to_json() if include_title else None,
+            'episodes': [ep.to_json(include_season=False) for ep in self.episodes],
         }
 
 
@@ -44,8 +46,8 @@ class Episode(Base):
     __tablename__ = "episodes"
 
     episode_name = Column(String(255), primary_key=True, nullable=True)
-    season_name = Column(String(255), ForeignKey('seasons.season_name')) # TODO: Cascade
-    season = relationship("Season", foreign_keys=[season_name], cascade="all, delete")
+    season_name = Column(String(255), ForeignKey('seasons.season_name'))
+    season = relationship("Season", foreign_keys=[season_name])
     watch_date = Column(Date)
     episode_order = Column(Integer)
     episode_time = Column(Integer)
@@ -55,7 +57,7 @@ class Episode(Base):
     after_watch = Column(Text, nullable=True)
     site = Column(String(255), nullable=True)
 
-    def to_json(self):
+    def to_json(self, include_season=True):
         return {
             'episodeName': self.episode_name,
             'watchDate': self.watch_date.strftime('%Y-%m-%d'),
@@ -65,8 +67,8 @@ class Episode(Base):
             'translateType': self.translate_type,
             'beforeWatch': self.before_watch,
             'afterWatch': self.after_watch,
-            'site': self.site,
-            'season': self.season.to_json()
+            'season': self.season.to_json() if include_season else None,
+            'site': self.site
         }
 
 # Base.metadata.create_all(engine)

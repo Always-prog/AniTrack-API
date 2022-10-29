@@ -34,5 +34,17 @@ class SeasonCreate(BaseModel):
     title_name: str
     episodes_count: int
     watch_motivation: str
+    site: str
     summary: Union[str, None]
-    season_order: int
+
+
+class DeleteEpisode(BaseModel):
+    episode_name: str
+
+
+class DeleteSeason(BaseModel):
+    season_name: str
+
+
+class DeleteTitle(BaseModel):
+    title_name: str
