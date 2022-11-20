@@ -8,7 +8,7 @@ from requests_types import TitleCreate, EpisodeCreate, SeasonCreate, DeleteEpiso
 from schemas.episodes.commands import create_episode, get_episodes_by_site, delete_episode, dump_episodes
 from schemas.episodes.exceptions import EpisodeAlreadyExists
 from schemas.seasons.commands import get_seasons, create_season, get_most_like_season, get_season, \
-    get_season_watched_episodes, get_season_by_site, delete_season, update_season
+    get_season_watched_episodes, get_season_by_site, delete_season, update_season, find_season_by_name
 from schemas.seasons.exceptions import SeasonAlreadyExists, SeasonNotFound
 from schemas.titles.commands import get_titles, search_titles, create_title, get_most_like_title, \
     get_most_like_season_in_title, get_recent_watched_episode, get_title, delete_title, update_title
@@ -111,9 +111,9 @@ async def get_season_by_site_endpoint(site: str, db: Session = Depends(get_db)):
 
 
 @app.get("/season/")
-async def get_season_by_site_endpoint(season_name: str, db: Session = Depends(get_db)):
+async def get_season_by_id_endpoint(id: int, db: Session = Depends(get_db)):
     try:
-        season = get_season(db, season_name)
+        season = get_season(db, id)
     except SeasonNotFound as e:
         raise HTTPException(status_code=404, detail=e.__str__())
 
@@ -132,7 +132,7 @@ async def get_season_watched_episodes_endpoint(seasonName: str, db: Session = De
 @app.put("/season/")
 async def update_season_endpoint(data: UpdateSeason, db: Session = Depends(get_db)):
     try:
-        season = update_season(db, data.season_name, **data.updated_fields)
+        season = update_season(db, data.id, **data.updated_fields)
     except SeasonNotFound as e:
         raise HTTPException(status_code=404, detail=e.__str__())
 
@@ -141,7 +141,7 @@ async def update_season_endpoint(data: UpdateSeason, db: Session = Depends(get_d
 
 @app.delete("/season/")
 async def delete_season_endpoint(data: DeleteSeason, db: Session = Depends(get_db)):
-    delete_season(db, data.season_name)
+    delete_season(db, data.id)
 
     return {'OK'}
 
@@ -177,7 +177,7 @@ async def get_episodes_by_site_endpoint(site: str, db: Session = Depends(get_db)
 
 @app.delete("/episode/")
 async def delete_episode_endpoint(data: DeleteEpisode, db: Session = Depends(get_db)):
-    delete_episode(db, data.episode_name)
+    delete_episode(db, data.id)
 
     return {'OK'}
 
@@ -186,15 +186,14 @@ async def delete_episode_endpoint(data: DeleteEpisode, db: Session = Depends(get
 async def create_episode_endpoint(data: EpisodeCreate, db: Session = Depends(get_db)):
     try:
         episode = create_episode(
-            season_name=data.season_name,
-            watch_date=data.watch_date,
+            season_id=data.season_id,
+            watch_datetime=data.watch_datetime,
             episode_order=data.episode_order,
-            episode_time=data.episode_time,
+            duration=data.duration,
             watched_time=data.watched_time,
             translate_type=data.translate_type,
             episode_name=data.episode_name,
-            before_watch=data.before_watch,
-            after_watch=data.after_watch,
+            comment=data.comment,
             site=data.site,
             db=db)
     except EpisodeAlreadyExists as e:

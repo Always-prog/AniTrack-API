@@ -7,11 +7,12 @@ from settings import EPISODES_TXT_FILE_PATH, DUMP_SCRIPT_PATH
 from .utils import generate_episode_name
 from .exceptions import EpisodeAlreadyExists, EpisodeNotFound
 from schemas.episodes.dumps import dump_database, write_episodes_to_txt
+from ..seasons.commands import get_season
 
 
-def find_season_episode_by_order(db: Session, season_name, episode_order):
+def find_season_episode_by_order(db: Session, season_id, episode_order):
     return db.query(Episode).filter_by(
-        season_name=season_name,
+        season_id=season_id,
         episode_order=episode_order
     ).first()
 
@@ -28,10 +29,10 @@ def get_episodes_by_site(db: Session, site: str):
     ).order_by(desc('watch_date'), desc('episode_order'))
 
 
-def delete_episode(db: Session, episode_name: str):
-    episode = db.query(Episode).filter_by(episode_name=episode_name).first()
+def delete_episode(db: Session, episode_id: int):
+    episode = db.query(Episode).filter_by(id=episode_id).first()
     if episode is None:
-        raise EpisodeNotFound(f'Episode "{episode_name}" not found!')
+        raise EpisodeNotFound(f'Episode with id "{episode_id}" not found!')
 
     db.delete(episode)
     db.commit()
@@ -43,36 +44,32 @@ def dump_episodes(db: Session):
 
 
 def create_episode(db: Session,
-                   season_name,
-                   watch_date,
+                   season_id: int,
+                   watch_datetime,
                    episode_order,
-                   episode_time,
+                   duration,
                    watched_time,
                    translate_type,
                    episode_name=None,
-                   before_watch=None,
-                   after_watch=None,
+                   comment=None,
                    site=None
                    ):
+    season = get_season(db, season_id)
     if not episode_name:
-        episode_name = generate_episode_name(season_name, episode_order)
+        episode_name = generate_episode_name(season.title_name, season.season_name, episode_order)
 
-    if find_season_episode_by_order(db, season_name, episode_order):
-        raise EpisodeAlreadyExists(f'Episode in {season_name} with order {episode_order} already exists.')
-
-    if find_episode_by_name(db, episode_name):
-        raise EpisodeAlreadyExists(f'Episode in {season_name} with name {episode_name} already exists.')
+    if find_season_episode_by_order(db, season.id, episode_order):
+        raise EpisodeAlreadyExists(f'Episode in {season.title_name} {season.season_name} with order {episode_order} already exists.')
 
     episode = Episode(
         episode_name=episode_name,
-        season_name=season_name,
-        watch_date=watch_date,
+        season_id=season_id,
+        watched_datetime=watch_datetime,
         episode_order=episode_order,
-        episode_time=episode_time,
+        duration=duration,
         watched_time=watched_time,
         translate_type=translate_type,
-        before_watch=before_watch,
-        after_watch=after_watch,
+        comment=comment,
         site=site,
     )
     db.add(episode)

@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, Date
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, DateTime, Numeric
 from sqlalchemy.orm import relationship
 from . import Base, engine
 
@@ -24,7 +24,8 @@ class Title(Base):
 class Season(Base):
     __tablename__ = "seasons"
 
-    season_name = Column(String(255), primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
+    season_name = Column(String(255))
     title_name = Column(String(255), ForeignKey('titles.title_name'))  # TODO: Cascade
     title = relationship("Title", foreign_keys=[title_name])
     episodes_count = Column(Integer)
@@ -35,6 +36,7 @@ class Season(Base):
 
     def to_json(self, include_title=True):
         return {
+            'id': self.id,
             'seasonName': self.season_name,
             'episodeCount': self.episodes_count,
             'watchMotivation': self.watch_motivation,
@@ -47,28 +49,28 @@ class Season(Base):
 class Episode(Base):
     __tablename__ = "episodes"
 
-    episode_name = Column(String(255), primary_key=True, nullable=True)
-    season_name = Column(String(255), ForeignKey('seasons.season_name'))
-    season = relationship("Season", foreign_keys=[season_name])
-    watch_date = Column(Date)
+    id = Column(Integer, primary_key=True, index=True)
+    episode_name = Column(String(255), nullable=True)
+    season_id = Column(Integer, ForeignKey('seasons.id'))
+    season = relationship("Season", foreign_keys=[season_id])
+    watched_datetime = Column(DateTime)
     episode_order = Column(Integer)
-    episode_time = Column(Integer)
-    watched_time = Column(Integer)
+    duration = Column(Numeric)
+    watched_time = Column(Numeric)
     translate_type = Column(String(255))
-    before_watch = Column(Text, nullable=True)
-    after_watch = Column(Text, nullable=True)
+    comment = Column(Text, nullable=True)
     site = Column(String(255), nullable=True)
 
     def to_json(self, include_season=True):
         return {
+            'id': self.id,
             'episodeName': self.episode_name,
-            'watchDate': self.watch_date.strftime('%Y-%m-%d'),
+            'watchDate': self.watched_datetime.strftime('%Y-%m-%d'),
             'episodeOrder': self.episode_order,
-            'episodeTime': self.episode_time,
+            'episodeTime': self.duration,
             'watchedTime': self.watched_time,
             'translateType': self.translate_type,
-            'beforeWatch': self.before_watch,
-            'afterWatch': self.after_watch,
+            'comment': self.comment,
             'season': self.season.to_json() if include_season else None,
             'site': self.site
         }

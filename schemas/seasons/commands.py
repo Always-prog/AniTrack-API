@@ -14,25 +14,25 @@ def find_season_by_name(db: Session, season_name):
     ).first()
 
 
-def get_season(db: Session, season_name: str):
-    season = db.query(Season).filter_by(season_name=season_name).first()
+def get_season(db: Session, season_id: int):
+    season = db.query(Season).filter_by(id=season_id).first()
     if season is None:
-        raise SeasonNotFound(f'Season with name {season_name} don\'t exists')
+        raise SeasonNotFound(f'Season with id {season_id} don\'t exists')
     return season
 
 
-def update_season(db: Session, season_name: str, **kwargs):
-    season = get_season(db, season_name)
+def update_season(db: Session, season_id: id, **kwargs):
+    season = get_season(db, season_id)
     for column, value in kwargs.items():
         setattr(season, column, value)
     db.commit()
     return season
 
 
-def get_season_watched_episodes(db: Session, season_name: str):
-    if not find_season_by_name(db, season_name):
-        raise SeasonNotFound(f'Season {season_name} don\'t exists!')
-    return db.query(Episode).filter_by(season_name=season_name).order_by(desc('watch_date'), desc('episode_order'))
+def get_season_watched_episodes(db: Session, season_id: int):
+    if not get_season(db, season_id):
+        raise SeasonNotFound(f'Season with id {season_id} don\'t exists!')
+    return db.query(Episode).filter_by(id=season_id).order_by(desc('watch_date'), desc('episode_order'))
 
 
 def get_most_like_season(db: Session, search: str):
@@ -55,10 +55,10 @@ def get_season_by_site(db: Session, site: str):
     raise SeasonNotFound(f'Season by site "{site}" don\'t exists')
 
 
-def delete_season(db: Session, season_name: str):
-    season = db.query(Season).filter_by(season_name=season_name).first()
+def delete_season(db: Session, season_id: int):
+    season = db.query(Season).filter_by(id=season_id).first()
     if season is None:
-        raise SeasonNotFound(f'Season with name "{season_name}" don\'t exists!')
+        raise SeasonNotFound(f'Season with id "{season_id}" don\'t exists!')
     db.delete(season)
     db.commit()
 

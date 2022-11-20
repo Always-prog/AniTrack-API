@@ -20,6 +20,8 @@ def dump_database(script: str):
 
 
 def write_episodes_to_txt(db: Session, filepath: str):
+    return
+    # TODO: Remove using before watch and after watch. Comment instead
     file_content = []
     space = '   '
 
@@ -27,7 +29,7 @@ def write_episodes_to_txt(db: Session, filepath: str):
         if episode.before_watch:
             file_content.append(f'{space}{episode.before_watch}\n')
         file_content.append(f'{space}Серия {episode.episode_order},'
-                            f' посмотрел {episode.watched_time} из {episode.episode_time}\n')
+                            f' посмотрел {episode.watched_time} из {episode.duration}\n')
         if episode.after_watch:
             file_content.append(f'{space}{episode.after_watch}\n')
 
@@ -38,7 +40,7 @@ def write_episodes_to_txt(db: Session, filepath: str):
         file_content.append(f'\n\n\n - [{title_name}]\n')
 
     last_title = None
-    for season in db.query(Season).join(Episode).group_by(Season.season_name).order_by(func.min(Episode.watch_date)):
+    for season in db.query(Season).join(Episode).group_by(Season.season_name).order_by(func.min(Episode.watched_datetime)):
         season.episodes.sort(key=lambda ep: ep.episode_order)
         if last_title != season.title_name:
             new_title(season.title_name)

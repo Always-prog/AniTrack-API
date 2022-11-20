@@ -18,14 +18,13 @@ class TitleCreate(BaseModel):
 
 class EpisodeCreate(BaseModel):
     episode_name: Union[str, None]
-    season_name: str
-    watch_date: str
+    season_id: int
+    watch_datetime: str
     episode_order: int
-    episode_time: int
+    duration: int
     watched_time: int
     translate_type: str
-    before_watch: Union[str, None]
-    after_watch: Union[str, None]
+    comment: Union[str, None]
     site: str
 
 
@@ -39,11 +38,11 @@ class SeasonCreate(BaseModel):
 
 
 class DeleteEpisode(BaseModel):
-    episode_name: str
+    id: int
 
 
 class DeleteSeason(BaseModel):
-    season_name: str
+    id: int
 
 
 class DeleteTitle(BaseModel):
@@ -51,7 +50,7 @@ class DeleteTitle(BaseModel):
 
 
 class UpdateSeason(BaseModel):
-    season_name: str
+    id: int
     updated_fields: dict
 
 
