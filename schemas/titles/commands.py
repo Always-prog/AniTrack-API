@@ -1,22 +1,8 @@
-from typing import List
-
-from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
-from database.tables import Title, Episode
+from database.tables import Title
+from mal.utils import get_title_by_id as mal_get_title_by_id, get_global_title_name as mal_get_global_title_name
 from .exceptions import TitleAlreadyExists, TitleNotFound
-
-from ..seasons.commands import get_season
-
-from fuzzywuzzy import process
-
-
-def update_title(db: Session, title_name: str, **kwargs):
-    title = get_title(db, title_name)
-    for column, value in kwargs.items():
-        setattr(title, column, value)
-    db.commit()
-    return title
 
 
 def get_title(db: Session, title_name: str):
@@ -24,10 +10,6 @@ def get_title(db: Session, title_name: str):
     if title is None:
         raise TitleNotFound(f'Title with name "{title_name}" not found!')
     return title
-
-
-def find_title_by_name(db: Session, title_name: str):
-    return db.query(Title).filter_by(title_name=title_name).first()
 
 
 def delete_title(db: Session, title_name: str):
@@ -38,39 +20,20 @@ def delete_title(db: Session, title_name: str):
     db.commit()
 
 
-def get_titles(db: Session) -> List[Title]:
-    return db.query(Title).all()
-
-
-def search_titles(db: Session, string: str):
-    return db.query(Title).filter(Title.title_name.ilike(f'%{string}%'))
-
-
-def get_recent_watched_episode(db: Session):
-    return db.query(Episode).order_by(desc('watch_date'), desc('episode_order')).first()
-
-
-def get_most_like_title(db: Session, search: str):
-    title_name = process.extractOne(search, [title.title_name for title in get_titles(db)])[0]
-    return get_title(db, title_name)
-
-
-def get_most_like_season_in_title(db: Session, title_name: str, search: str):
-    title = get_title(db, title_name)
-    season_name = process.extractOne(search, [season.season_name for season in title.seasons])[0]
-
-    return get_season(db, season_name)
-
-
-def create_title(db: Session, title_name: str, watch_motivation: str):
-    if find_title_by_name(db, title_name):
-        raise TitleAlreadyExists(title_name)
-
+def create_title(db: Session, title_name: str, title_source: str, title_source_id: int):
     title = Title(
         title_name=title_name,
-        watch_motivation=watch_motivation
+        title_source=title_source,
+        source_id=title_source_id
     )
     db.add(title)
     db.commit()
     db.refresh(title)
     return title
+
+
+def create_title_from_mal(db: Session, title_id: int):
+    source = 'mal'
+    title_details = mal_get_title_by_id(title_id)
+    title_name = mal_get_global_title_name(title_details['title'])
+    return create_title(db, title_name, source, title_id)
