@@ -7,10 +7,11 @@ from mal.utils import get_global_title_from_title
 from schemas.titles.commands import create_title_from_mal
 from schemas.seasons.commands import create_season_from_mal, refresh_episodes_from_mal
 from datetime import datetime
-from database.tables import Record, Title, Season, Episode
+from database.tables import Record, Title, Season, Episode, User
 
 
-def create_record_from_source(db: Session, source: str,
+def create_record_from_source(db: Session, user: User,
+                              source: str,
                               source_type: str,
                               source_id: int,
                               episode_order: int,
@@ -48,10 +49,11 @@ def create_record_from_source(db: Session, source: str,
     if not episode_db:
         raise EpisodeNotFound(
             f'Episode not found: {season_db.title.title_name} -> {season_db.title.title_name} -> {episode_order}')
-    return create_record(db, episode_db, watch_datetime, watched_from, watched_time, translate_type, comment, site)
+    return create_record(db, user, episode_db, watch_datetime, watched_from, watched_time, translate_type, comment, site)
 
 
 def create_record(db: Session,
+                  user: User,
                   episode: Episode,
                   watch_datetime: str or datetime,
                   watched_from: int,
@@ -61,6 +63,7 @@ def create_record(db: Session,
                   site: str = None
                   ):
     record = Record(
+        owner_id=user.id,
         episode_id=episode.id,
         watched_datetime=watch_datetime,
         watched_from=watched_from,

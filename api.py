@@ -1,12 +1,14 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from database.sessions import get_db
+from database.tables import User, Token
 from mal.client import MALClient
-from requests_types import RecordCreate, MALProxy
-from schemas.records.commands import create_record, create_record_from_source
-import requests
+from requests_types import RecordCreate
+from schemas.records.commands import create_record_from_source
+from schemas.tokens.utils import generate_token, create_new_user_token
 
 app = FastAPI()
 
@@ -22,9 +24,48 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+@app.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(User).filter_by(username=form_data.username).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+
+    if not user.password == form_data.password:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+
+    token = create_new_user_token(db, user)
+
+    return {"access_token": token, "token_type": "bearer"}
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    token_db = db.query(Token).filter_by(token=token).first()
+
+    if not token_db:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    user = token_db.user
+
+    if user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+
+    return user
+
+
+@app.get("/me")
+async def get_my_user(user: User = Depends(get_current_user)):
+    return user.to_json()
+
 
 @app.post("/record/create")
-async def create_record_endpoint(data: RecordCreate, db: Session = Depends(get_db)):
+async def create_record_endpoint(data: RecordCreate, user: User = Depends(get_current_user),
+                                 db: Session = Depends(get_db)):
     record = create_record_from_source(
         source=data.source,
         source_type=data.source_type,
@@ -36,7 +77,8 @@ async def create_record_endpoint(data: RecordCreate, db: Session = Depends(get_d
         translate_type=data.translate_type,
         comment=data.comment,
         site=data.site,
-        db=db
+        db=db,
+        user=user
     )
     # dump_episodes(db)  # TODO: Dumping every time... It's bad realisation! Do dumps another way!
 

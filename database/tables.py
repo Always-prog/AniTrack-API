@@ -66,6 +66,9 @@ class Comment(Base):
     __tablename__ = 'comments'
 
     id = Column(Integer, primary_key=True)
+    owner_id = Column(Integer, ForeignKey('users.id'))
+    user = relationship("User", foreign_keys=[owner_id])
+
     episode_id = Column(Integer, ForeignKey('episodes.id'))
     episode = relationship("Episode", foreign_keys=[episode_id])
     text = Column(Text, nullable=False)
@@ -85,6 +88,9 @@ class Record(Base):
     __tablename__ = 'records'
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey('users.id'))
+    user = relationship("User", foreign_keys=[owner_id])
+
     episode_id = Column(Integer, ForeignKey('episodes.id'))
     episode = relationship("Episode", foreign_keys=[episode_id])
     watched_from = Column(Numeric, nullable=False)
@@ -105,6 +111,32 @@ class Record(Base):
             'episode': self.episode.to_json() if include_episode else None,
             'site': self.site,
         }
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(255), nullable=False, unique=True)
+    email = Column(String(255), nullable=False, unique=True)
+    password = Column(String(255), nullable=False)
+    disabled = Column(Boolean, default=False)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email
+        }
+
+
+class Token(Base):
+    __tablename__ = 'tokens'
+
+    id = Column(Integer, primary_key=True, index=True)
+    token = Column(String(64), unique=True, nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user = relationship("User", foreign_keys=[user_id])
 
 
 Base.metadata.create_all(engine)
