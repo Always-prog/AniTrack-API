@@ -119,6 +119,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(255), nullable=False, unique=True)
     email = Column(String(255), nullable=False, unique=True)
+    first_name = Column(String(255), nullable=True)
+    last_name = Column(String(255), nullable=True)
+    created_on = Column(DateTime)
     password = Column(String(255), nullable=False)
     disabled = Column(Boolean, default=False)
 

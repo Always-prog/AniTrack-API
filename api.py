@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 from database.sessions import get_db
 from database.tables import User, Token
 from mal.client import MALClient
-from requests_types import RecordCreate
+from requests_types import RecordCreate, Register
 from schemas.records.commands import create_record_from_source
-from schemas.tokens.utils import generate_token, create_new_user_token
+from schemas.tokens.utils import create_new_user_token
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = FastAPI()
 
@@ -27,7 +28,11 @@ app.add_middleware(
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-@app.post("/token")
+async def register(data: Register, db: Session = Depends(get_db())):
+    pass  # TODO: FINISH REGISTRATION
+
+
+@app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter_by(username=form_data.username).first()
     if not user:

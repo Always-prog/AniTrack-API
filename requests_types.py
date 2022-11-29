@@ -15,5 +15,11 @@ class RecordCreate(BaseModel):
     site: str
 
 
+class Register(BaseModel):
+    username: str
+    email: str
+    password: str
+    
+
 class MALProxy(BaseModel):
     endpoint: str
