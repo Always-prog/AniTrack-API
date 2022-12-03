@@ -49,6 +49,7 @@ class Episode(Base):
     episode_order = Column(Integer)
     duration = Column(Numeric)
     records = relationship("Record", cascade="all, delete-orphan")
+    comments = relationship("Comment", cascade="all, delete-orphan")
 
     def to_json(self, include_season=True):
         return {
@@ -124,6 +125,7 @@ class User(Base):
     created_on = Column(DateTime)
     password = Column(String(255), nullable=False)
     disabled = Column(Boolean, default=False)
+    records = relationship("Record", cascade="all, delete-orphan")
 
     def to_json(self):
         return {

@@ -19,6 +19,8 @@ class Register(BaseModel):
     username: str
     email: str
     password: str
+    first_name: Union[str, None]
+    last_name: Union[str, None]
     
 
 class MALProxy(BaseModel):

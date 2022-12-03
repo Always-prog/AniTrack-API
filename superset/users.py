@@ -32,3 +32,12 @@ def create_user_in_superset(username, hashed_password, email, first_name, last_n
             )
             """
         )
+
+
+def get_user_from_superset(username: str):
+    with engine.connect() as con:
+        return con.execute(
+            f"""
+            SELECT * from ab_user WHERE username='{username}';
+            """
+        ).all()

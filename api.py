@@ -9,7 +9,8 @@ from mal.client import MALClient
 from requests_types import RecordCreate, Register
 from schemas.records.commands import create_record_from_source
 from schemas.tokens.utils import create_new_user_token
-from werkzeug.security import generate_password_hash, check_password_hash
+from schemas.users.commands import register_new_user, check_user_password
+from schemas.users.exceptions import UserAlreadyExists
 
 app = FastAPI()
 
@@ -28,17 +29,22 @@ app.add_middleware(
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-async def register(data: Register, db: Session = Depends(get_db())):
-    pass  # TODO: FINISH REGISTRATION
+@app.post("/register")
+async def register(data: Register, db: Session = Depends(get_db)):
+    try:
+        register_new_user(db=db, username=data.username, email=data.email, password=data.password,
+                          first_name=data.first_name, last_name=data.last_name)
+    except UserAlreadyExists as e:
+        raise HTTPException(status_code=409, detail=e.__str__())
 
 
-@app.post("/login")
+@app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter_by(username=form_data.username).first()
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 
-    if not user.password == form_data.password:
+    if check_user_password(user, form_data.password):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 
     token = create_new_user_token(db, user)
