@@ -69,6 +69,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 
+async def drop_token_endpoint(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db.query(Token).filter(User.user_id == user.id).delete()
+    return {'OK'}
+
+
 @app.get("/me")
 async def get_my_user(user: User = Depends(get_current_user)):
     return user.to_json()

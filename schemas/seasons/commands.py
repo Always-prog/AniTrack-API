@@ -40,6 +40,13 @@ def create_season(db: Session,
 def refresh_episodes_from_mal(db: Session, season: Season, mal_season_id: int):
     mal_season_details = mal_get_season_by_id(mal_season_id)
     episodes_count = mal_season_details['num_episodes']
+    if episodes_count == 0:
+        if 'one piece' in mal_season_details['title'].lower():
+            episodes_count = 2000
+        elif 'naturo-boruto' in mal_season_details['title'].lower():
+            episodes_count = 1000
+        else:
+            episodes_count = 200
     average_episode_duration = mal_season_details['average_episode_duration']
     fill_season_with_episodes(db, season, episodes_count, average_episode_duration)
 
