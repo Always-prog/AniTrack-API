@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Tuple
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -11,8 +12,8 @@ from schemas.users.exceptions import UserAlreadyExists
 
 def register_new_user(db: Session, username: str, email: str, password: str, first_name: str or None,
                       last_name: str or None):
-    if db.query(User).filter_by(username=username).first() or get_user_from_superset(username):
-        raise UserAlreadyExists('User with username %s already exists' % username)
+    if db.query(User).filter(or_(User.username==username, User.email==email)).first() or get_user_from_superset(username):
+        raise UserAlreadyExists(f'User with username {username} or email {email} already exists')
     gen_first_name, gen_last_name = generate_user_name()
     first_name, last_name = gen_first_name if not first_name else first_name, \
                             gen_last_name if not last_name else last_name
