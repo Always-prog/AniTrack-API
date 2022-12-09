@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from database.sessions import get_db
 from database.tables import User, Token
 from mal.client import MALClient
-from requests_types import RecordCreate, Register
+from requests_types import RecordCreate, Register, MALProxy
 from schemas.records.commands import create_record_from_source
 from schemas.tokens.utils import create_new_user_token
 from schemas.users.commands import register_new_user, check_user_password
@@ -101,7 +101,7 @@ async def create_record_endpoint(data: RecordCreate, user: User = Depends(get_cu
     return record.to_json()
 
 
-@app.get('/mal')
-async def mal_proxy_endpoint(endpoint: str):
+@app.post('/mal')
+async def mal_proxy_endpoint(data: MALProxy):
     client = MALClient()
-    return client._client_request('get', endpoint).json()
+    return client._client_request('get', data.endpoint, params=data.params).json()

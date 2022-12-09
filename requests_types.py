@@ -25,3 +25,4 @@ class Register(BaseModel):
 
 class MALProxy(BaseModel):
     endpoint: str
+    params: dict
