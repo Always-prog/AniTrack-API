@@ -5,7 +5,7 @@ from schemas.episodes.exceptions import EpisodeNotFound
 from schemas.records.exceptions import UnsupportedSource, UnsupportedSourceType
 from mal.utils import get_global_title_from_title
 from schemas.titles.commands import create_title_from_mal
-from schemas.seasons.commands import create_season_from_mal, refresh_episodes_from_mal
+from schemas.seasons.commands import create_season_from_mal, refresh_episodes_in_season
 from datetime import datetime
 from database.tables import Record, Title, Season, Episode, User
 
@@ -43,7 +43,7 @@ def create_record_from_source(db: Session, user: User,
     episode_db = db.query(Episode).filter_by(season_id=season_db.id, episode_order=episode_order).first()
     if not episode_db:
         # Refreshing season episodes
-        refresh_episodes_from_mal(db, season=season_db, mal_season_id=source_id)
+        refresh_episodes_in_season(db, season=season_db, mal_season_id=source_id)
         episode_db = db.query(Episode).filter_by(season_id=season_db.id, episode_order=episode_order).first()
 
     if not episode_db:
