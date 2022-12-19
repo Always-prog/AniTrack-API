@@ -3,7 +3,7 @@ from os import environ
 from os.path import exists
 import requests
 
-from mal.types import GLOBAL_TITLE_ID
+from mal.types import MAL_TITLE_ID
 
 REFRESH_TOKEN = 'refresh_token'
 ACCESS_TOKEN = 'access_token'
@@ -58,8 +58,12 @@ class ShikimoriClient:
         endpoint = '/api/animes'
         return self._request('get', endpoint, params={'search': search})
 
-    def anime(self, id: GLOBAL_TITLE_ID):
+    def anime(self, id: MAL_TITLE_ID):
         endpoint = '/api/animes/%s' % id
+        return self._request('get', endpoint)
+
+    def franchise(self, id: MAL_TITLE_ID):
+        endpoint = '/api/animes/%s/franchise' % id
         return self._request('get', endpoint)
 
     def refresh_tokens(self):

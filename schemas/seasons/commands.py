@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from database.tables import Season
-from mal.types import GLOBAL_TITLE_ID
+from mal.types import MAL_TITLE_ID
 from mal.utils import get_title_by_id as mal_get_season_by_id
 from schemas.episodes.commands import fill_season_with_episodes
 from schemas.seasons.exceptions import SeasonNotFound
@@ -39,7 +39,7 @@ def create_season(db: Session,
     return season
 
 
-def refresh_episodes_in_season(db: Session, season: Season, title_id: GLOBAL_TITLE_ID):
+def refresh_episodes_in_season(db: Session, season: Season, title_id: MAL_TITLE_ID):
     mal_season_details = mal_get_season_by_id(title_id)
     episodes_count = mal_season_details['num_episodes']
     if episodes_count == 0:  # That means that title is not finished, and MAL doesn't published aried eps

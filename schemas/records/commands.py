@@ -1,13 +1,13 @@
-from sqlalchemy import desc
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 
+from database.tables import Record, Title, Season, Episode, User
 from schemas.episodes.exceptions import EpisodeNotFound
 from schemas.records.exceptions import UnsupportedSource, UnsupportedSourceType
-from mal.utils import get_global_title_from_title
-from schemas.titles.commands import create_title_from_mal
 from schemas.seasons.commands import create_season_from_mal, refresh_episodes_in_season
-from datetime import datetime
-from database.tables import Record, Title, Season, Episode, User
+from schemas.titles.commands import create_title_from_mal
+from shikimori.functions import get_source_title_id
 
 
 def create_record_from_source(db: Session, user: User,
@@ -27,23 +27,23 @@ def create_record_from_source(db: Session, user: User,
     if source_type != 'season':
         raise UnsupportedSourceType('Unsupported source type: %s' % source)
     #  Get the title of that season
-    source_title_name, source_title_id = get_global_title_from_title(source_id)
+    source_title_id = get_source_title_id(source_id)
 
     #  Check that title is exists
-    title_db = db.query(Title).filter_by(source_id=source_title_id).first()
+    title_db = db.query(Title).filter(Title.source_id == source_title_id).first()
     if not title_db:
         title_db = create_title_from_mal(db, source_title_id)
 
     #  Check that season is exists (And create episodes)
     season_db = db.query(Season).filter_by(source_id=source_id).first()
     if not season_db:
-        season_db = create_season_from_mal(db, title_db.id, source_id)
+        season_db = create_season_from_mal(db=db, title_id=title_db.id, mal_season_id=source_id)
 
     #  Record record
     episode_db = db.query(Episode).filter_by(season_id=season_db.id, episode_order=episode_order).first()
     if not episode_db:
         # Refreshing season episodes
-        refresh_episodes_in_season(db, season=season_db, mal_season_id=source_id)
+        refresh_episodes_in_season(db, season=season_db, title_id=source_id)
         episode_db = db.query(Episode).filter_by(season_id=season_db.id, episode_order=episode_order).first()
 
     if not episode_db:

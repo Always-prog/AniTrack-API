@@ -1,8 +1,11 @@
 from sqlalchemy.orm import Session
 
 from database.tables import Title
-from mal.utils import get_title_by_id as mal_get_title_by_id, get_global_title_name as mal_get_global_title_name
-from .exceptions import TitleAlreadyExists, TitleNotFound
+from mal.types import FRANCHISE_CODE
+from mal.utils import get_franchise_from_title
+from mal.utils import get_title_by_id
+from shikimori.functions import get_source_title
+from .exceptions import TitleNotFound
 
 
 def get_title(db: Session, title_name: str):
@@ -20,7 +23,8 @@ def delete_title(db: Session, title_name: str):
     db.commit()
 
 
-def create_title(db: Session, title_name: str, title_source: str, title_source_id: int):
+def create_title(db: Session, title_name: str, title_source: str,
+                 title_source_id: int = None):
     title = Title(
         title_name=title_name,
         title_source=title_source,
@@ -34,6 +38,11 @@ def create_title(db: Session, title_name: str, title_source: str, title_source_i
 
 def create_title_from_mal(db: Session, title_id: int):
     source = 'mal'
-    title_details = mal_get_title_by_id(title_id)
-    title_name = mal_get_global_title_name(title_details['title'])
-    return create_title(db, title_name, source, title_id)
+    source_title = get_source_title(title_id)
+    if source_title is None:
+        title_name = get_title_by_id(title_id)['title']
+    else:
+        title_name = source_title['name']
+
+    return create_title(db=db, title_name=title_name, title_source=source,
+                        title_source_id=title_id)
