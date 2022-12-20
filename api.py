@@ -9,7 +9,7 @@ from mal.client import MALClient
 from requests_types import RecordCreate, Register, MALProxy
 from schemas.records.commands import create_record_from_source
 from schemas.tokens.utils import create_new_user_token
-from schemas.users.commands import register_new_user, check_user_password
+from schemas.users.commands import register_new_user, is_password_right
 from schemas.users.exceptions import UserAlreadyExists
 
 app = FastAPI()
@@ -44,7 +44,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 
-    if check_user_password(user, form_data.password):
+    if not is_password_right(user=user, password=form_data.password):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 
     token = create_new_user_token(db, user)
@@ -69,8 +69,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 
+@app.post("/token/drop")
 async def drop_token_endpoint(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    db.query(Token).filter(User.user_id == user.id).delete()
+    db.query(Token).filter(Token.user_id == user.id).delete()
+    db.commit()
     return {'OK'}
 
 
@@ -102,6 +104,6 @@ async def create_record_endpoint(data: RecordCreate, user: User = Depends(get_cu
 
 
 @app.post('/mal')
-async def mal_proxy_endpoint(data: MALProxy):
+async def mal_proxy_endpoint(data: MALProxy, user: User = Depends(get_current_user)):
     client = MALClient()
     return client._client_request('get', data.endpoint, params=data.params).json()

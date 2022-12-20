@@ -28,8 +28,8 @@ def register_new_user(db: Session, username: str, email: str, password: str, fir
                             created_on=now.strftime('%Y-%m-%d %H:%M:%S'), first_name=first_name, last_name=last_name)
 
 
-def check_user_password(user: User, hashed_password: str):
-    return check_password_hash(hashed_password, user.password)
+def is_password_right(user: User, password: str):
+    return check_password_hash(user.password, password)
 
 
 def generate_user_name() -> Tuple[str, str]:
