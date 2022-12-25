@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from database.tables import Title
-from mal.types import FRANCHISE_CODE
+from mal.types import FRANCHISE_CODE, TITLE_NAME
 from mal.utils import get_franchise_from_title
 from mal.utils import get_title_by_id
 from shikimori.functions import get_source_title
@@ -36,6 +36,12 @@ def create_title(db: Session, title_name: str, title_source: str,
     return title
 
 
+def prepare_source_title_name(title_name: TITLE_NAME):
+    if ': ' in title_name:
+        return title_name.split(':')[0]
+    return title_name
+
+
 def create_title_from_mal(db: Session, title_id: int):
     source = 'mal'
     source_title = get_source_title(title_id)
@@ -44,5 +50,5 @@ def create_title_from_mal(db: Session, title_id: int):
     else:
         title_name = source_title['name']
 
-    return create_title(db=db, title_name=title_name, title_source=source,
+    return create_title(db=db, title_name=prepare_source_title_name(title_name), title_source=source,
                         title_source_id=title_id)
