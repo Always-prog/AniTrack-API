@@ -13,6 +13,3 @@ class BaseCommand(ABC):
     @abstractmethod
     def run(self):
         pass
-
-
-

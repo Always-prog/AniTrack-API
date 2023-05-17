@@ -1,6 +1,8 @@
-from mal.types import TITLE_FIELDS
 from os import environ
+
 import requests
+
+from mal.types import TITLE_FIELDS
 
 DEFAULT_TITLE_FIELDS: TITLE_FIELDS = ['id', 'title', 'num_episodes', 'average_episode_duration', 'related_anime',
                                       'start_date']
@@ -34,4 +36,3 @@ class MALClient:
         fields = fields or DEFAULT_TITLE_FIELDS
         endpoint = f'/v2/anime/{id}'
         return self._client_request('get', endpoint, params={'fields': ','.join(fields)}).json()
-

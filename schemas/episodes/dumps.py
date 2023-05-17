@@ -1,16 +1,17 @@
 import subprocess
+from threading import Thread
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+
 from database.tables import Season, Episode
-from threading import Thread
-from os import system
 
 
 def dump_all(db: Session, script: str, filepath: str):
     def execute(db: Session, script: str, filepath: str):
         write_episodes_to_txt(db, filepath)
         dump_database(script)
+
     thread = Thread(target=execute, args=(db, script, filepath,))
     thread.start()
 
@@ -40,7 +41,8 @@ def write_episodes_to_txt(db: Session, filepath: str):
         file_content.append(f'\n\n\n - [{title_name}]\n')
 
     last_title = None
-    for season in db.query(Season).join(Episode).group_by(Season.season_name).order_by(func.min(Episode.watched_datetime)):
+    for season in db.query(Season).join(Episode).group_by(Season.season_name).order_by(
+            func.min(Episode.watched_datetime)):
         season.episodes.sort(key=lambda ep: ep.episode_order)
         if last_title != season.title_name:
             new_title(season.title_name)

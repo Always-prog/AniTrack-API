@@ -6,13 +6,14 @@ from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from database.tables import User
-from superset.users import create_user_in_superset, get_user_from_superset
 from schemas.users.exceptions import UserAlreadyExists
+from superset.users import create_user_in_superset, get_user_from_superset
 
 
 def register_new_user(db: Session, username: str, email: str, password: str, first_name: str or None,
                       last_name: str or None):
-    if db.query(User).filter(or_(User.username==username, User.email==email)).first() or get_user_from_superset(username):
+    if db.query(User).filter(or_(User.username == username, User.email == email)).first() or get_user_from_superset(
+            username):
         raise UserAlreadyExists(f'User with username {username} or email {email} already exists')
     gen_first_name, gen_last_name = generate_user_name()
     first_name, last_name = gen_first_name if not first_name else first_name, \

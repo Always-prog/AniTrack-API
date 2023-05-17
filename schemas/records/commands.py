@@ -49,7 +49,8 @@ def create_record_from_source(db: Session, user: User,
     if not episode_db:
         raise EpisodeNotFound(
             f'Episode not found: {season_db.title.title_name} -> {season_db.title.title_name} -> {episode_order}')
-    return create_record(db, user, episode_db, watch_datetime, watched_from, watched_time, translate_type, comment, site)
+    return create_record(db, user, episode_db, watch_datetime, watched_from, watched_time, translate_type, comment,
+                         site)
 
 
 def create_record(db: Session,

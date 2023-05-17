@@ -1,13 +1,10 @@
-from sqlalchemy import desc
-
-from database.tables import Episode, Season
 from sqlalchemy.orm import Session
 
-from settings import EPISODES_TXT_FILE_PATH, DUMP_SCRIPT_PATH
-from .utils import generate_episode_name
-from .exceptions import EpisodeAlreadyExists, EpisodeNotFound
+from database.tables import Episode, Season
 from schemas.episodes.dumps import dump_database, write_episodes_to_txt
-from schemas.seasons.exceptions import SeasonNotFound
+from settings import EPISODES_TXT_FILE_PATH, DUMP_SCRIPT_PATH
+from .exceptions import EpisodeAlreadyExists
+from .utils import generate_episode_name
 
 
 def find_season_episode_by_order(db: Session, season_id, episode_order):

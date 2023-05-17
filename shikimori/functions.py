@@ -1,7 +1,7 @@
 """
 Animes at Shikimori has the same MAL ID.
 """
-from mal.types import MAL_TITLE_ID, MAL_TITLE_ID
+from mal.types import MAL_TITLE_ID
 from shikimori.client import ShikimoriClient
 
 

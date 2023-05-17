@@ -1,5 +1,6 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, DateTime, Numeric
 from sqlalchemy.orm import relationship
+
 from . import Base, engine
 
 
@@ -145,5 +146,3 @@ class Token(Base):
 
 
 Base.metadata.create_all(engine)
-
-

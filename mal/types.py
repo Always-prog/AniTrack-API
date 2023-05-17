@@ -1,4 +1,4 @@
-from typing import Literal, List, Dict
+from typing import Literal, List
 
 TITLE_FIELD = Literal[
     'id', 'title', 'main_picture', 'start_date', 'end_date', 'synopsis',

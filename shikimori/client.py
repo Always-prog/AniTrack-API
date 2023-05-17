@@ -1,6 +1,7 @@
 import json
 from os import environ
 from os.path import exists
+
 import requests
 
 from mal.types import MAL_TITLE_ID
@@ -76,7 +77,7 @@ class ShikimoriClient:
         headers = {
             "User-Agent": 'timeEater'
         }
-        response = requests.post(self._endpoint('/oauth/token'),headers=headers, files=files)
+        response = requests.post(self._endpoint('/oauth/token'), headers=headers, files=files)
         if response.status_code != 200:
             raise Exception('Something is going wrong with refreshing token %s' % response.text)
 

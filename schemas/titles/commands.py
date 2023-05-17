@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
 
 from database.tables import Title
-from mal.types import FRANCHISE_CODE, TITLE_NAME
-from mal.utils import get_franchise_from_title
+from mal.types import TITLE_NAME
 from mal.utils import get_title_by_id
 from shikimori.functions import get_source_title
 from .exceptions import TitleNotFound
